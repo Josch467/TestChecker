@@ -59,31 +59,49 @@ export function gradeSheet() {
     showLoading('Loading OpenCV and processing image...');
     
     loadOpenCV().then(() => {
+        console.log('OpenCV loaded successfully');
         showLoading('Detecting bubbles...');
         
         // Get answer key
         return storage.getAnswerKey(keyId);
     }).then(answerKey => {
+        console.log('Answer key loaded:', answerKey);
         // Create image element for OpenCV
         const img = new Image();
+        img.crossOrigin = 'anonymous';
         img.src = URL.createObjectURL(imageFile);
         
         return new Promise((resolve, reject) => {
-            img.onload = () => resolve({ img, answerKey });
-            img.onerror = reject;
+            img.onload = () => {
+                console.log('Image loaded successfully');
+                resolve({ img, answerKey });
+            };
+            img.onerror = (error) => {
+                console.error('Image load error:', error);
+                reject(new Error('Failed to load image'));
+            };
         });
     }).then(({ img, answerKey }) => {
         showLoading('Detecting bubbles...');
         
         // Detect bubbles
         return settings.get().then(currentSettings => {
-            return { img, answerKey, detectedAnswers: detectBubblesAdvanced(img, currentSettings.threshold) };
+            console.log('Settings loaded, threshold:', currentSettings.threshold);
+            try {
+                const detectedAnswers = detectBubblesAdvanced(img, currentSettings.threshold);
+                console.log('Bubbles detected:', detectedAnswers);
+                return { img, answerKey, detectedAnswers };
+            } catch (error) {
+                console.error('Bubble detection error:', error);
+                throw error;
+            }
         });
     }).then(({ img, answerKey, detectedAnswers }) => {
         showLoading('Grading answers...');
         
         // Grade answers
         const result = gradeAnswers(detectedAnswers, answerKey);
+        console.log('Grading result:', result);
         
         // Create thumbnail
         const canvas = document.createElement('canvas');
@@ -104,7 +122,7 @@ export function gradeSheet() {
     }).catch(error => {
         console.error('Grading error:', error);
         hideLoading();
-        alert('Error during grading: ' + error.message);
+        alert('Error during grading: ' + error.message + '\n\nPlease try again with a clearer image.');
     });
 }
 

@@ -64,7 +64,10 @@ window.capturePhoto = capturePhoto;
 
 // Handle file upload
 export function handleFileUpload(event) {
+    console.log('File upload triggered');
     const file = event.target.files[0];
+    console.log('File selected:', file);
+    
     if (!file) return;
     
     if (file.type === 'application/pdf') {
@@ -81,7 +84,12 @@ export function handleFileUpload(event) {
     
     const reader = new FileReader();
     reader.onload = function(e) {
+        console.log('File reader loaded');
         displayImagePreview(e.target.result);
+    };
+    reader.onerror = function(error) {
+        console.error('File reader error:', error);
+        alert('Error reading file');
     };
     reader.readAsDataURL(file);
 }

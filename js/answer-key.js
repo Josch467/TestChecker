@@ -23,7 +23,7 @@ export function generateAnswerGrid() {
                         class="bubble-option flex-1 py-2 px-3 border border-gray-300 rounded text-sm font-medium hover:bg-gray-100"
                         data-item="${i}" 
                         data-option="${option}"
-                        onclick="selectBubble(${i}, '${option}')"
+                        data-action="select-bubble"
                     >
                         ${option}
                     </button>
@@ -38,12 +38,16 @@ export function generateAnswerGrid() {
 
 // Select a bubble option
 export function selectBubble(itemIndex, option) {
+    console.log('selectBubble called:', itemIndex, option);
+    
     // Toggle selection
     if (currentAnswers[itemIndex] === option) {
         currentAnswers[itemIndex] = null;
     } else {
         currentAnswers[itemIndex] = option;
     }
+    
+    console.log('Current answers after selection:', currentAnswers.filter(a => a !== null).length);
     
     // Update UI
     updateBubbleUI(itemIndex);

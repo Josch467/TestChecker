@@ -82,7 +82,7 @@
                             <i data-lucide="upload" class="w-8 h-8 mx-auto mb-2 text-gray-400"></i>
                             <p class="text-gray-600">Click to upload image</p>
                             <p class="text-sm text-gray-400">JPG, PNG, or PDF</p>
-                            <input type="file" id="file-input" accept="image/*,.pdf" class="hidden" data-action="handle-file-upload">
+                            <input type="file" id="file-input" accept="image/*,.pdf" class="hidden">
                         </div>
                         <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 cursor-pointer" data-action="open-camera-modal">
                             <i data-lucide="camera" class="w-8 h-8 mx-auto mb-2 text-gray-400"></i>
@@ -267,8 +267,8 @@
         lucide.createIcons();
     </script>
     <script>
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
+        // Register Service Worker (only on HTTPS or localhost)
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
                     .then(registration => {

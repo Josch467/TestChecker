@@ -2,7 +2,7 @@
 
 import { loadAnswerKeys, updateAnswerKeySelect, showTab } from './ui.js';
 import { cleanupCamera } from './camera.js';
-import { openAnswerKeyModal, closeAnswerKeyModal, saveAnswerKey, fillFromCSV } from './answer-key.js';
+import { openAnswerKeyModal, closeAnswerKeyModal, saveAnswerKey, fillFromCSV, selectBubble } from './answer-key.js';
 import { openCameraModal, closeCameraModal, capturePhoto, handleFileUpload, clearImage } from './camera.js';
 import { gradeSheet } from './ui.js';
 import { exportHistory, clearAllData, updateThreshold } from './ui.js';
@@ -107,6 +107,11 @@ function setupEventDelegation() {
                     deleteResult(resultDeleteId);
                 });
                 break;
+            case 'select-bubble':
+                const itemIndex = parseInt(button.dataset.item);
+                const option = button.dataset.option;
+                selectBubble(itemIndex, option);
+                break;
         }
     });
     
@@ -119,7 +124,13 @@ function setupEventDelegation() {
     });
     
     // Handle file input change
-    document.getElementById('file-input').addEventListener('change', handleFileUpload);
+    const fileInput = document.getElementById('file-input');
+    if (fileInput) {
+        fileInput.addEventListener('change', (event) => {
+            console.log('File input change event triggered');
+            handleFileUpload(event);
+        });
+    }
     
     // Handle answer key select change
     document.getElementById('grade-key-select').addEventListener('change', function() {
@@ -136,20 +147,6 @@ function setupEventDelegation() {
         import('./storage.js').then(({ settings }) => {
             settings.update('maxOptions', parseInt(this.value));
         });
-    });
-    
-    // Handle bubble selection in answer key modal
-    document.addEventListener('click', (event) => {
-        const bubbleOption = event.target.closest('.bubble-option');
-        if (bubbleOption && bubbleOption.dataset.item !== undefined) {
-            const itemIndex = parseInt(bubbleOption.dataset.item);
-            const option = bubbleOption.dataset.option;
-            
-            // Call the globally available selectBubble function
-            if (window.selectBubble) {
-                window.selectBubble(itemIndex, option);
-            }
-        }
     });
     
 }
