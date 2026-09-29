@@ -1,6 +1,6 @@
 // Service Worker for offline support
 
-const CACHE_NAME = 'bubble-sheet-grader-v1';
+const CACHE_NAME = 'bubble-sheet-grader-v2';
 const urlsToCache = [
     './',
     './index.html',
@@ -16,8 +16,10 @@ self.addEventListener('install', event => {
         caches.open(CACHE_NAME)
             .then(cache => {
                 console.log('Opened cache');
-                return cache.addAll(urlsToCache);
+                // add one by one so a failing CDN file doesn't stop the whole install
+                return Promise.allSettled(urlsToCache.map(url => cache.add(url)));
             })
+            .then(() => self.skipWaiting())
     );
 });
 
@@ -67,6 +69,6 @@ self.addEventListener('activate', event => {
                     }
                 })
             );
-        })
+        }).then(() => self.clients.claim())
     );
 });

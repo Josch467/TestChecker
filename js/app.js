@@ -32,6 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // Centralized event delegation system
 function setupEventDelegation() {
     document.addEventListener('click', (event) => {
+        // Let the hidden file input handle its own click (otherwise preventDefault below cancels the file picker)
+        if (event.target.id === 'file-input') return;
+
         const button = event.target.closest('button, [data-action]');
         if (!button) return;
         

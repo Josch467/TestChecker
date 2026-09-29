@@ -2,7 +2,7 @@
 
 import { loadAnswerKeys, updateAnswerKeySelect } from './answer-key.js';
 import { getCurrentImage } from './camera.js';
-import { loadOpenCV, detectBubblesAdvanced } from './omr.js';
+import { loadOpenCV, detectBubblesAdvanced, getLastDebugCanvas, getLastInfo } from './omr.js';
 import { gradeAnswers, saveGradingResult, getGradeLetter, getPercentageColor, getPercentageBgColor } from './grading.js';
 import { storage, settings } from './storage.js';
 
@@ -118,6 +118,7 @@ export function gradeSheet() {
     }).then(({ result, answerKey }) => {
         // Display results
         displayResults(result, answerKey);
+        appendDebugView();
         hideLoading();
     }).catch(error => {
         console.error('Grading error:', error);
@@ -203,6 +204,22 @@ function displayResults(result, answerKey) {
     
     // Re-initialize Lucide icons
     lucide.createIcons();
+}
+
+// Show what the reader saw (green = shaded, red = multiple, grey = empty, orange = estimated)
+function appendDebugView() {
+    const canvas = getLastDebugCanvas();
+    if (!canvas) return;
+    const info = getLastInfo();
+    const wrap = document.createElement('div');
+    wrap.className = 'mt-6';
+    wrap.innerHTML = `
+        <h3 class="font-semibold text-gray-800 mb-1">What the reader saw</h3>
+        <p class="text-sm text-gray-500 mb-2">Green = shaded, red = more than one shaded, grey = empty, orange = estimated position.
+        Blue numbers are item numbers - check they match your sheet.${info ? ` (bubbles found: ${info.detected}/250${info.upsideDown ? ', sheet was upside-down' : ''})` : ''}</p>`;
+    canvas.className = 'max-w-full rounded-lg border border-gray-200';
+    wrap.appendChild(canvas);
+    document.getElementById('results-content').appendChild(wrap);
 }
 
 // Load grading history
