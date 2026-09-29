@@ -216,7 +216,7 @@ function appendDebugView() {
     wrap.innerHTML = `
         <h3 class="font-semibold text-gray-800 mb-1">What the reader saw</h3>
         <p class="text-sm text-gray-500 mb-2">Green = shaded, red = more than one shaded, grey = empty, orange = estimated position.
-        Blue numbers are item numbers - check they match your sheet.${info ? ` (bubbles found: ${info.detected}/250${info.upsideDown ? ', sheet was upside-down' : ''})` : ''}</p>`;
+        Blue numbers are item numbers - check they match your sheet.${info ? ` (reader v${info.version}, bubbles found: ${info.detected}/250${info.upsideDown ? ', sheet was upside-down' : ''})` : ''}</p>`;
     canvas.className = 'max-w-full rounded-lg border border-gray-200';
     wrap.appendChild(canvas);
     document.getElementById('results-content').appendChild(wrap);
