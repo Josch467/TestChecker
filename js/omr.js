@@ -153,8 +153,16 @@ export function analyzeSheet(cvx, rgba, W, H, opts = {}) {
         // at high thresholds, faint pencil rings vanish at low ones.
         const minSide = Math.max(6, Math.max(W, H) * 0.004);
         let cands = [];
-        for (const th of [170, 140, 110]) {
-            cvx.threshold(norm, ink, th, 255, cvx.THRESH_BINARY_INV);
+        // First try a LOCAL threshold (copes with faint rings on the dim/glary
+        // side of a photo), then fall back to fixed darkness levels.
+        const adaptBlock = oddInt(Math.max(W, H) / 50);
+        for (const th of [0, 170, 140, 110]) {
+            if (th === 0) {
+                cvx.adaptiveThreshold(gray, ink, 255, cvx.ADAPTIVE_THRESH_GAUSSIAN_C,
+                    cvx.THRESH_BINARY_INV, adaptBlock, 6);
+            } else {
+                cvx.threshold(norm, ink, th, 255, cvx.THRESH_BINARY_INV);
+            }
             cvx.findContours(ink, contours, hierarchy, cvx.RETR_EXTERNAL, cvx.CHAIN_APPROX_SIMPLE);
             let found = [];
             for (let i = 0; i < contours.size(); i++) {
