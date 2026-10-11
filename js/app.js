@@ -65,6 +65,9 @@ function setupEventDelegation() {
             case 'capture-photo':
                 capturePhoto();
                 break;
+            case 'toggle-flash':
+                toggleFlash();
+                break;
             case 'trigger-file-upload':
                 document.getElementById('file-input').click();
                 break;
