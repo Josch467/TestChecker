@@ -2,6 +2,7 @@
 
 let cameraStream = null;
 let currentImageFile = null;
+let torchOn = false;
 
 // Open camera modal
 export function openCameraModal() {
@@ -16,6 +17,7 @@ export function openCameraModal() {
     }).then(stream => {
         cameraStream = stream;
         video.srcObject = cameraStream;
+        setupFlashButton();
     }).catch(error => {
         console.error('Camera error:', error);
         alert('Could not access camera. Please check permissions or use file upload instead.');
@@ -25,15 +27,58 @@ export function openCameraModal() {
 
 window.openCameraModal = openCameraModal;
 
+// Show flash button only if the camera supports torch
+function setupFlashButton() {
+    const btn = document.getElementById('flash-button');
+    const track = cameraStream ? cameraStream.getVideoTracks()[0] : null;
+    torchOn = false;
+    updateFlashButton();
+    
+    const caps = track && track.getCapabilities ? track.getCapabilities() : {};
+    if (caps.torch) {
+        btn.classList.remove('hidden');
+    } else {
+        btn.classList.add('hidden');
+    }
+}
+
+function updateFlashButton() {
+    const btn = document.getElementById('flash-button');
+    const label = document.getElementById('flash-label');
+    label.textContent = torchOn ? 'Flash On' : 'Flash Off';
+    btn.classList.toggle('bg-yellow-300', torchOn);
+    btn.classList.toggle('text-yellow-900', torchOn);
+}
+
+// Toggle flash (torch)
+export async function toggleFlash() {
+    const track = cameraStream ? cameraStream.getVideoTracks()[0] : null;
+    if (!track) return;
+    
+    try {
+        await track.applyConstraints({ advanced: [{ torch: !torchOn }] });
+        torchOn = !torchOn;
+        updateFlashButton();
+    } catch (error) {
+        console.error('Flash error:', error);
+        alert('Flash is not available on this device.');
+    }
+}
+
+window.toggleFlash = toggleFlash;
+
 // Close camera modal
 export function closeCameraModal() {
     const modal = document.getElementById('camera-modal');
     const video = document.getElementById('camera-preview');
     
     if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream.getTracks().forEach(track => track.stop()); // also turns flash off
         cameraStream = null;
     }
+    
+    torchOn = false;
+    document.getElementById('flash-button').classList.add('hidden');
     
     video.srcObject = null;
     modal.classList.add('hidden');
