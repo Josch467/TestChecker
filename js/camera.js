@@ -54,15 +54,22 @@ function updateFlashButton() {
 export async function toggleFlash() {
     const track = cameraStream ? cameraStream.getVideoTracks()[0] : null;
     if (!track) return;
-    
+
+    const next = !torchOn;
+
     try {
-        await track.applyConstraints({ advanced: [{ torch: !torchOn }] });
-        torchOn = !torchOn;
-        updateFlashButton();
-    } catch (error) {
-        console.error('Flash error:', error);
-        alert('Flash is not available on this device.');
+        await track.applyConstraints({ torch: next });
+    } catch (e1) {
+        try {
+            await track.applyConstraints({ advanced: [{ torch: next }] });
+        } catch (e2) {
+            alert('Flash error: ' + e2.message);
+            return;
+        }
     }
+
+    torchOn = next;
+    updateFlashButton();
 }
 
 window.toggleFlash = toggleFlash;
