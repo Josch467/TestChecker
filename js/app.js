@@ -3,7 +3,7 @@
 import { loadAnswerKeys, updateAnswerKeySelect, showTab } from './ui.js';
 import { cleanupCamera } from './camera.js';
 import { openAnswerKeyModal, closeAnswerKeyModal, saveAnswerKey, fillFromCSV, selectBubble } from './answer-key.js';
-import { openCameraModal, closeCameraModal, capturePhoto, handleFileUpload, clearImage } from './camera.js';
+import { openCameraModal, closeCameraModal, capturePhoto, handleFileUpload, clearImage, toggleFlash } from './camera.js';
 import { gradeSheet } from './ui.js';
 import { exportHistory, clearAllData, updateThreshold } from './ui.js';
 
