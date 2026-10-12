@@ -49,50 +49,41 @@ window.openCameraModal = openCameraModal;
 // Show flash button only if the camera supports torch
 function setupFlashButton() {
     const btn = document.getElementById('flash-button');
-    const video = document.getElementById('camera-preview');
-    const track = video.srcObject ? video.srcObject.getVideoTracks()[0] : null;
+    if (!btn) return;
+
     torchOn = false;
     updateFlashButton();
+    btn.classList.remove('hidden'); // always show
 
-    const caps = track && track.getCapabilities ? track.getCapabilities() : {};
-    if (caps.torch) {
-        btn.classList.remove('hidden');
-        // Direct handler, so it works even if app.js is outdated
-        btn.onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation(); // prevents a double toggle if app.js also handles it
-            toggleFlash();
-        };
-    } else {
-        btn.classList.add('hidden');
-    }
+    btn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleFlash();
+    };
 }
+
 
 //toggle flash
 export async function toggleFlash() {
-    alert('Flash button pressed'); // temporary test, remove later
-
-    const video = document.getElementById('camera-preview');
-    const track = video.srcObject ? video.srcObject.getVideoTracks()[0] : null;
+    const track = cameraStream ? cameraStream.getVideoTracks()[0] : null;
     if (!track) {
         alert('No camera track found');
         return;
     }
 
-    const next = !torchOn;
-    const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Phone did not respond')), 3000));
+    const caps = track.getCapabilities ? track.getCapabilities() : {};
+    if (!caps.torch) {
+        alert('This camera does not report flash support.\n\nCapabilities: ' + Object.keys(caps).join(', '));
+        return;
+    }
 
+    const next = !torchOn;
     try {
-        try {
-            await Promise.race([track.applyConstraints({ advanced: [{ torch: next }] }), timeout]);
-        } catch (e1) {
-            await Promise.race([track.applyConstraints({ torch: next }), timeout]);
-        }
+        await track.applyConstraints({ advanced: [{ torch: next }] });
         torchOn = next;
         updateFlashButton();
     } catch (e) {
-        alert('Flash error: ' + e.message);
+        alert('Flash error: ' + e.name + ' - ' + e.message);
     }
 }
 
