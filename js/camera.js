@@ -46,34 +46,26 @@ export async function openCameraModal() {
 
 window.openCameraModal = openCameraModal;
 
-// Show flash button only if the camera supports torch
+// Reset flash button state
 function setupFlashButton() {
-    const btn = document.getElementById('flash-button');
-    if (!btn) return;
-
     torchOn = false;
     updateFlashButton();
-    btn.classList.remove('hidden'); // always show
-
-    btn.onclick = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleFlash();
-    };
 }
 
+function updateFlashButton() {
+    const btn = document.getElementById('flash-button');
+    const label = document.getElementById('flash-label');
+    if (!btn || !label) return;
+    label.textContent = torchOn ? 'Flash On' : 'Flash Off';
+    btn.classList.toggle('bg-yellow-300', torchOn);
+    btn.classList.toggle('text-yellow-900', torchOn);
+}
 
-//toggle flash
+// Toggle flash (torch)
 export async function toggleFlash() {
     const track = cameraStream ? cameraStream.getVideoTracks()[0] : null;
     if (!track) {
-        alert('No camera track found');
-        return;
-    }
-
-    const caps = track.getCapabilities ? track.getCapabilities() : {};
-    if (!caps.torch) {
-        alert('This camera does not report flash support.\n\nCapabilities: ' + Object.keys(caps).join(', '));
+        alert('Camera is not ready yet.');
         return;
     }
 
@@ -83,7 +75,7 @@ export async function toggleFlash() {
         torchOn = next;
         updateFlashButton();
     } catch (e) {
-        alert('Flash error: ' + e.name + ' - ' + e.message);
+        alert('Flash is not supported on this device or browser.\n(' + e.name + ': ' + e.message + ')');
     }
 }
 
@@ -93,16 +85,15 @@ window.toggleFlash = toggleFlash;
 export function closeCameraModal() {
     const modal = document.getElementById('camera-modal');
     const video = document.getElementById('camera-preview');
-    
+
     if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop()); // also turns flash off
         cameraStream = null;
     }
-    
+
     torchOn = false;
-    const flashBtn = document.getElementById('flash-button');
-    if (flashBtn) flashBtn.classList.add('hidden');
-    
+    updateFlashButton();
+
     video.srcObject = null;
     modal.classList.add('hidden');
     modal.classList.remove('flex');
@@ -114,13 +105,13 @@ window.closeCameraModal = closeCameraModal;
 export function capturePhoto() {
     const video = document.getElementById('camera-preview');
     const canvas = document.getElementById('camera-canvas');
-    
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    
+
     const ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0);
-    
+
     canvas.toBlob(blob => {
         currentImageFile = new File([blob], 'captured-photo.jpg', { type: 'image/jpeg' });
         displayImagePreview(canvas.toDataURL('image/jpeg'));
@@ -135,21 +126,21 @@ export function handleFileUpload(event) {
     console.log('File upload triggered');
     const file = event.target.files[0];
     console.log('File selected:', file);
-    
+
     if (!file) return;
-    
+
     if (file.type === 'application/pdf') {
         alert('PDF files are not yet supported. Please use an image file (JPG/PNG).');
         return;
     }
-    
+
     if (!file.type.startsWith('image/')) {
         alert('Please select an image file (JPG/PNG).');
         return;
     }
-    
+
     currentImageFile = file;
-    
+
     const reader = new FileReader();
     reader.onload = function(e) {
         console.log('File reader loaded');
@@ -169,7 +160,7 @@ function displayImagePreview(dataUrl) {
     const previewContainer = document.getElementById('image-preview-container');
     const preview = document.getElementById('image-preview');
     const gradeButton = document.getElementById('grade-button');
-    
+
     preview.src = dataUrl;
     previewContainer.classList.remove('hidden');
     gradeButton.disabled = false;
