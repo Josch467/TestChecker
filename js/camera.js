@@ -5,6 +5,11 @@ let currentImageFile = null;
 let torchOn = false;
 
 // Open camera modal
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+    }
+
 export function openCameraModal() {
     const modal = document.getElementById('camera-modal');
     const video = document.getElementById('camera-preview');
