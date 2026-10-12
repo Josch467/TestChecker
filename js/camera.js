@@ -5,29 +5,43 @@ let currentImageFile = null;
 let torchOn = false;
 
 // Open camera modal
+export async function openCameraModal() {
+    const modal = document.getElementById('camera-modal');
+    const video = document.getElementById('camera-preview');
+
+    // release any old stream first
     if (cameraStream) {
         cameraStream.getTracks().forEach(t => t.stop());
         cameraStream = null;
     }
 
-export function openCameraModal() {
-    const modal = document.getElementById('camera-modal');
-    const video = document.getElementById('camera-preview');
-    
     modal.classList.remove('hidden');
     modal.classList.add('flex');
-    
-    navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-    }).then(stream => {
-        cameraStream = stream;
-        video.srcObject = cameraStream;
-        setupFlashButton();
-    }).catch(error => {
+
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } }
+        });
+    } catch (error) {
         console.error('Camera error:', error);
-        alert('Could not access camera. Please check permissions or use file upload instead.');
+        alert('Camera error: ' + error.name + ' - ' + error.message);
         closeCameraModal();
-    });
+        return;
+    }
+
+    video.srcObject = cameraStream;
+    try {
+        await video.play();
+    } catch (e) {
+        console.warn('Video play issue:', e);
+    }
+
+    // flash setup must never break the camera
+    try {
+        setupFlashButton();
+    } catch (e) {
+        console.warn('Flash setup failed:', e);
+    }
 }
 
 window.openCameraModal = openCameraModal;
@@ -95,7 +109,8 @@ export function closeCameraModal() {
     }
     
     torchOn = false;
-    document.getElementById('flash-button').classList.add('hidden');
+    const flashBtn = document.getElementById('flash-button');
+    if (flashBtn) flashBtn.classList.add('hidden');
     
     video.srcObject = null;
     modal.classList.add('hidden');
